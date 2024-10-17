@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Frontend:/frontend
+    tty: true
+    stdin_open: true
+    restart: always
+    command: ["npm", "run", "dev"]
+    networks:
+      - camme
+
+  database:
+    container_name: database
+    image: mysql:8.0
+    env_file:
+      - ./Backend/.env
+    ports:
+      - "3306:3306"
+    networks:
+      - camme
+
+  backend:
+    container_name: backend
+    env_file:
+      - ./Backend/.env
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./Backend:/backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    tty: true
+    networks:
+      - camme
+
+  nginx:
+    container_name: nginx
+    restart: unless-stopped
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    expose:
+      - 80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ./nginx/log:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - camme
+
+networks:
+  camme:
+    driver: bridge
