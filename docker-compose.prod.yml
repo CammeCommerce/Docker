@@ -59,7 +59,6 @@ services:
     expose:
       - 80
     volumes:
-      - build_folder:/var/www/frontend
       - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - ./nginx/log:/var/log/nginx
     depends_on:
