@@ -17,21 +17,6 @@ services:
     networks:
       - camme
 
-  database:
-    container_name: database
-    image: mysql:8.0
-    env_file:
-      - ./Backend/.env
-    environment:
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    ports:
-      - "3306:3306"
-    networks:
-      - camme
-
   backend:
     container_name: backend
     env_file:
@@ -41,13 +26,13 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./Backend:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - "8080:8080"
-    depends_on:
-      - database
     tty: true
     networks:
       - camme
+    command: ["npm", "start"]
 
   nginx:
     container_name: nginx
