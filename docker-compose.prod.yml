@@ -10,10 +10,23 @@ services:
       - "5173:5173"
     volumes:
       - ./Frontend:/frontend
+      - build_folder:/app/dist
+    command: ["npm", "run", "dev"]
     tty: true
     stdin_open: true
     restart: always
-    command: ["npm", "run", "dev", "--", "host"]
+    networks:
+      - camme
+
+  database:
+    container_name: database
+    image: mysql:8.0
+    env_file:
+      - ./Backend/.env
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+    ports:
+      - "3307:3306"
     networks:
       - camme
 
@@ -29,10 +42,12 @@ services:
       - /usr/src/app/node_modules
     ports:
       - "8080:8080"
+    depends_on:
+      - database
     tty: true
     networks:
       - camme
-    command: ["npm", "start"]
+    command: ["/usr/wait-for-it.sh", "database:3306", "--", "npm", "start"]
 
   nginx:
     container_name: nginx
@@ -44,6 +59,7 @@ services:
     expose:
       - 80
     volumes:
+      - build_folder:/var/www/frontend
       - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - ./nginx/log:/var/log/nginx
     depends_on:
@@ -55,3 +71,6 @@ services:
 networks:
   camme:
     driver: bridge
+
+volumes:
+  build_folder:
